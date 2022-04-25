@@ -5,7 +5,7 @@
 	(function() {
 	  var hm = document.createElement("script");
 	  hm.src = "https://hm.baidu.com/hm.js?5ebe572e50425975e9bb5543706f62e6";
-	  var s = document.getElementsByTagName("script")[0]; 
+	  var s = document.getElementsByTagName("script")[0];
 	  s.parentNode.insertBefore(hm, s);
 	})();
 	</script>
@@ -139,7 +139,7 @@
 				$("<link />")
 					.attr("rel", "stylesheet")
 					.attr("type", "text/css")
-					.attr("href", "res/theme_" + themeId + ".css?_=" + 0)
+					.attr("href", "res/theme_" + themeId + ".css?_=" + 1)
 					.appendTo($("head"));
 			}
 
@@ -370,7 +370,8 @@
 					<span style="font-size: small;">
 						<a href="http://kittensgame.com/beta" title="测试版本" target="_blank">&beta;</a>
 						<a href="http://kittensgame.com/web" title="国外英文官网版本" target="_blank"><strong>ML</strong></a>
-						<a href="https://petercheney.gitee.io/kitten-game-cn/" title="备用网站" target="_blank"><strong>C</strong></a>
+						<a href="https://petercheney.gitee.io/kitten-game-cn/" title="备用网站" target="_blank">C</a>
+						<a href="https://lolitalibrary.com/maomao/" title="备用网站" target="_blank"><strong>C</strong></a>
 					</span>
 				</div>
 
@@ -409,7 +410,7 @@
 
 			<div id="loadingContainer">
 				<div class="content">
-					<span style="font-size:18px;"><img class="loader" width="16" height="16" src="res/ajax-loader.gif" alt="加载中">&nbsp;加载中...<br>gitee网速很慢如果卡住F5刷新<br></span>
+					<span style="font-size:18px;"><img class="loader" width="16" height="16" src="res/ajax-loader.gif" alt="加载中">&nbsp;加载中...</span>
 					<br>
 					<progress id="loadingProgressBar" value="0" max="100"></progress>
 					<div id="loadingProgressInfo">Setting up game engine...</div>
@@ -759,8 +760,20 @@
 				</div>
 			</div>
 
+			<div id="importantGiteeDiv" style="display: none" class="dialog help">
+				<a id="registerDialogClose" href="#" class="close" style="position: absolute; top: 10px; right: 15px;">close</a>
+				<ul style = "list-style:none">
+				<li>由于Gitee官方通知，该网站可能随时被关闭。<br>原因是likexia，idlegame 网页占用了较多网络资源。请相互理解</li>
+				<li>故请做好做备份，在游戏右上角的选项中可以 导出/导入 游戏存档。</li>
+				<li>所以我暂时弄了2个备用站。（分流一下~）</li>
+				<li>Cheney的gitee备用：<a href="https://petercheney.gitee.io/kitten-game-cn/" title="备用网站" target="_blank"><strong>https://petercheney.gitee.io/kitten-game-cn/</strong></a></li>
+				<li>Cheney的备用游戏：<a href="https://lolitalibrary.com/maomao/" title="备用网站" target="_blank"><strong>https://lolitalibrary.com/maomao/</strong></a></li>
+				<li>Cheney的备用百科：<a href="https://lolitalibrary.com/wiki/" title="备用网站" target="_blank"><strong>https://lolitalibrary.com/wiki/</strong></a></li>
+				</ul>
+			</div>
+
 			<div id="footerLinks" class="links-block">
-				<a href="https://petercheney.gitee.io/baike/?file=%E9%A6%96%E9%A1%B5" target="_blank" title="猫国百科全书">百科（中文wiki）</a> |
+				<a href="https://petercheney.gitee.io/baike/?file=%E9%A6%96%E9%A1%B5" target="_blank" title="猫国百科全书">百科</a> |
 				<a class="chatLink" href="//shang.qq.com/wpa/qunwpa?idkey=2b9f0b27b1aabbce582429184ec05344fa384f59bf410f44071f42b271866338" target="_blank" title="点击加入猫薄荷同好会QQ群：499256691">Q群</a> |
 				<a href="http://g8hh.com" target="_blank" title="更多好玩的放置游戏，就来锅巴汉化">锅巴汉化</a> |
 				<!-- <a href="http://kittensgame.tumblr.com" target="_blank">tumblr</a> | -->
@@ -791,7 +804,7 @@
 				$("#set-ks-enable").attr("checked", false);
 			};
 			
-		   var ks =function() {
+		   var ks = function() {
 				if (ksVision) {
 					if (localStorage['zh.ks.enable'] === 'enable') {
 						enableKS();
@@ -876,6 +889,9 @@
 				}
 			};
 			var id = setInterval(paragonWebsite, 10000);
+			var gitee = setTimeout(() => {
+				game.ui.showDialog("importantGiteeDiv");
+			}, 5000);
 		</script>
 		<script type="text/javascript">
 			function readText() {

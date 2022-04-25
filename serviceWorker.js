@@ -33,9 +33,6 @@ const NO_CACHE_LIST = [
 	'server.json',
 	'build.version.json',
 ];
-//var month = () => {
-//	return new self.Date().getMonth();
-//};
 
 const month = new Date().getMonth();
 
@@ -47,7 +44,7 @@ self.addEventListener('install', event => {
 			return cache.addAll(cdnCache);
 		}).then(() => {
 			// 缓存index的重定向
-			caches.open(CACHE_NAME).then(cache => {
+			return caches.open(CACHE_NAME).then(cache => {
 				return cache.addAll(urlsToCache);
 			}).then(() => {
 				// 安装新的
@@ -61,73 +58,73 @@ self.addEventListener("activate", event => {
 	event.waitUntil(
 		caches.keys().then(keys => {
 			// 删除旧缓存
-			Promise.all(
-				keys.map(key => {
-					//if (CACHE_NAME === key) {
-					//	return caches.delete(key);
-					//}
-				})
-			);
+			//Promise.all(
+			//	keys.map(key => {
+			//		//if (CACHE_NAME === key) {
+			//		//	return caches.delete(key);
+			//		//}
+			//	})
+			//);
+			return caches.open(CACHE_NAME).then(function(cache) {
+				return cache.delete(locationUrl);
+			});
 		}).then(() => {
-			// 装新的sw
-			return self.clients.claim();
+			// 缓存index的重定向
+			return caches.open(CACHE_NAME).then(cache => {
+				return cache.addAll(urlsToCache);
+			}).then(() => {
+				// 装新的sw
+				return self.clients.claim();
+			});
 		})
 	);
 });
 
 self.addEventListener('fetch', function(event) {
-	let requestUrl = event.request;
-	let newRequest = new URL(requestUrl.url);
-	//let indexDate = requestUrl.url.indexOf('?v=');
-	let indexDate = requestUrl.url.indexOf('?file=');
-	// 过滤自带版本号的
-	//if (indexDate != -1) {
-	//	newRequest.protocol = self.location.protocol;
-	//	newRequest.search = '';
-	//	requestUrl = new Request(newRequest.href);
-	//}
-	let serverJson = requestUrl.url.indexOf('server.json');
-	let buildJson = requestUrl.url.indexOf('build.version.json');
-
+	let eventRequest = event.request;
+	let newRequest = new URL(eventRequest.url);
+	// 过滤版本号文件
+	let serverJson = eventRequest.url.indexOf('server.json');
+	let buildJson = eventRequest.url.indexOf('build.version.json');
 	// 过滤 已知其他跨域的
-	let skipWorker = CACHE_LIST.indexOf(new URL(requestUrl.url).host);
-	if (skipWorker > -1 && serverJson == -1 && buildJson == -1) {
+	let skipWorker = CACHE_LIST.indexOf(new URL(eventRequest.url).host);
+	if (skipWorker > -1 && serverJson == -1) {
+		// 无视url参数
 		event.respondWith(
-			caches.match(requestUrl, {
+			caches.match(eventRequest, {
 				ignoreSearch: true,
 			}).then(function(response, reject) {
-				// 如果缓存有就返回缓存
-				// 每月一次更新
-				let a = true;
+				let skipDelete = true;
 				if (response) {
 					if (newRequest.search) {
+						// 版本号不同 就不返回结果并去网络请求删除旧缓存
 						let cacheUrl = new URL(response.url).search;
 						let data = newRequest.search;
-						if (cacheUrl != data) {
-							a = false;
+						if (cacheUrl != data && cacheUrl.indexOf('=0') == -1 && buildJson == -1) {
+							skipDelete = false;
 						}
 					}
-					if (a) {
+					if (skipDelete) {
 						return response;
 					}
 				}
-				return fetch(requestUrl).then(
+				return fetch(eventRequest).then(
 					function(response) {
-						//let indexDate = requestUrl.url.indexOf('fonts.googleapis.com/css?family');
+						//let indexDate = eventRequest.url.indexOf('fonts.googleapis.com/css?family');
 						if (!response || response.status !== 200 || response.type !== 'basic') {
 							return response;
 						}
 						// 网络获得成功，再缓存
 						var responseToCache = response.clone();
 						caches.open(CACHE_NAME).then(function(cache) {
-							if (!a) {
-								cache.delete(requestUrl, {
+							if (!skipDelete) {
+								cache.delete(eventRequest, {
 									ignoreSearch: true,
 								}).then(() => {
-									cache.put(requestUrl, responseToCache);
+									return cache.put(eventRequest, responseToCache);
 								});
 							} else {
-								cache.put(requestUrl, responseToCache);
+								cache.put(eventRequest, responseToCache);
 							}
 						});
 						return response;
