@@ -27,7 +27,7 @@ const NO_CACHE_LIST = [
 ];
 
 self.addEventListener('install', event => {
-	self.skipWaiting();
+	//self.skipWaiting();
 	// 缓存cdn
 	event.waitUntil(
 		caches.open('cdn').then(cache => {
@@ -46,7 +46,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener("activate", event => {
 	event.waitUntil(
-		caches.keys().then(keys => {
+		//caches.keys().then(keys => {
 			// 删除旧缓存
 			//Promise.all(
 			//	keys.map(key => {
@@ -55,19 +55,19 @@ self.addEventListener("activate", event => {
 			//		//}
 			//	})
 			//);
-			return caches.open(CACHE_NAME).then(function(cache) {
-				return cache.delete(locationUrl, {
-					ignoreSearch: true,
-				});
+		//}).
+		caches.open(CACHE_NAME).then(function(cache) {
+			return cache.delete(locationUrl, {
+				ignoreSearch: true,
 			});
 		}).then(() => {
-			// 缓存index的重定向
-			return caches.open(CACHE_NAME).then(cache => {
-				return cache.addAll(urlsToCache);
-			}).then(() => {
+			/* 缓存index的重定向
+			//return caches.open(CACHE_NAME).then(cache => {
+			//	return cache.addAll(urlsToCache);
+			}).then(() => { */
 				// 装新的sw
 				return self.clients.claim();
-			});
+			//});
 		})
 	);
 });
@@ -75,7 +75,7 @@ self.addEventListener("activate", event => {
 self.addEventListener('fetch', function(event) {
 	let eventRequest = event.request;
 	let requestURL = eventRequest.url;
-	let objectURL = new URL(eventRequest.url);
+	let objectURL = new URL(requestURL);
 	// 过滤版本号文件
 	let serverJson = requestURL.indexOf('server.json');
 	let buildJson = requestURL.includes('build.version.json');
@@ -87,6 +87,10 @@ self.addEventListener('fetch', function(event) {
 			caches.match(eventRequest, {
 				ignoreSearch: buildJson,
 			}).then(function(response, reject) {
+				//没网直接返回
+				if (!navigator.onLine) {
+					return response;
+				}
 				let useCache = true;
 				if (response) {
 					if (objectURL.search) {
@@ -99,10 +103,6 @@ self.addEventListener('fetch', function(event) {
 						return response;
 					}
 				}
-				//没网直接返回
-				if (!navigator.onLine) {
-					return response;
-				}
 				return fetch(eventRequest, {
 					cache: 'no-cache',
 				}).then(function(responseFetch) {
@@ -112,14 +112,14 @@ self.addEventListener('fetch', function(event) {
 					// 网络获得成功，再缓存
 					var responseFetchToCache = responseFetch.clone();
 					caches.open(CACHE_NAME).then(function(cache) {
-						cache.delete(eventRequest, {
+						return cache.delete(eventRequest, {
 							ignoreSearch: true,
 						}).then(() => {
 							return cache.put(eventRequest, responseFetchToCache);
 						});
 					});
 					return responseFetch;
-				})
+				});
 			})
 		);
 	}
