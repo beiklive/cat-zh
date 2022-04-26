@@ -14,14 +14,6 @@ const urlsToCache = [
 	locationUrl + 'index.html',
 ];
 
-//const NO_CACHE_LIST = [
-//	'fonts.googleapis.com',
-//	'fonts.gstatic.com',
-//	'hm.baidu.com',
-//	'kittensgame.com',
-//	'q2.qlogo.cn',
-//];
-
 // 白名单
 const CACHE_LIST = [
 	'lf3-cdn-tos.bytecdntp.com',
@@ -33,8 +25,6 @@ const NO_CACHE_LIST = [
 	'server.json',
 	'build.version.json',
 ];
-
-const month = new Date().getMonth();
 
 self.addEventListener('install', event => {
 	self.skipWaiting();
@@ -66,7 +56,9 @@ self.addEventListener("activate", event => {
 			//	})
 			//);
 			return caches.open(CACHE_NAME).then(function(cache) {
-				return cache.delete(locationUrl);
+				return cache.delete(locationUrl, {
+					ignoreSearch: true,
+				});
 			});
 		}).then(() => {
 			// 缓存index的重定向
@@ -82,54 +74,52 @@ self.addEventListener("activate", event => {
 
 self.addEventListener('fetch', function(event) {
 	let eventRequest = event.request;
-	let newRequest = new URL(eventRequest.url);
+	let requestURL = eventRequest.url;
+	let objectURL = new URL(eventRequest.url);
 	// 过滤版本号文件
-	let serverJson = eventRequest.url.indexOf('server.json');
-	let buildJson = eventRequest.url.indexOf('build.version.json');
+	let serverJson = requestURL.indexOf('server.json');
+	let buildJson = requestURL.includes('build.version.json');
 	// 过滤 已知其他跨域的
-	let skipWorker = CACHE_LIST.indexOf(new URL(eventRequest.url).host);
-	if (skipWorker > -1 && serverJson == -1) {
+	let skipWorker = CACHE_LIST.indexOf(objectURL.host);
+	if (skipWorker > -1) {
 		// 无视url参数
 		event.respondWith(
 			caches.match(eventRequest, {
-				ignoreSearch: true,
+				ignoreSearch: buildJson,
 			}).then(function(response, reject) {
-				let skipDelete = true;
+				let useCache = true;
 				if (response) {
-					if (newRequest.search) {
-						// 版本号不同 就不返回结果并去网络请求删除旧缓存
-						let cacheUrl = new URL(response.url).search;
-						let data = newRequest.search;
-						if (cacheUrl != data && cacheUrl.indexOf('=0') == -1 && buildJson == -1) {
-							skipDelete = false;
+					if (objectURL.search) {
+						/*serverJson !== -1 || */
+						if (objectURL.search.indexOf('=0') !== -1 || buildJson) {
+							useCache = false;
 						}
 					}
-					if (skipDelete) {
+					if (useCache) {
 						return response;
 					}
 				}
-				return fetch(eventRequest).then(
-					function(response) {
-						//let indexDate = eventRequest.url.indexOf('fonts.googleapis.com/css?family');
-						if (!response || response.status !== 200 || response.type !== 'basic') {
-							return response;
-						}
-						// 网络获得成功，再缓存
-						var responseToCache = response.clone();
-						caches.open(CACHE_NAME).then(function(cache) {
-							if (!skipDelete) {
-								cache.delete(eventRequest, {
-									ignoreSearch: true,
-								}).then(() => {
-									return cache.put(eventRequest, responseToCache);
-								});
-							} else {
-								cache.put(eventRequest, responseToCache);
-							}
-						});
-						return response;
+				//没网直接返回
+				if (!navigator.onLine) {
+					return response;
+				}
+				return fetch(eventRequest, {
+					cache: 'no-cache',
+				}).then(function(responseFetch) {
+					if (!responseFetch || responseFetch.status !== 200 || responseFetch.type !== 'basic') {
+						return responseFetch;
 					}
-				);
+					// 网络获得成功，再缓存
+					var responseFetchToCache = responseFetch.clone();
+					caches.open(CACHE_NAME).then(function(cache) {
+						cache.delete(eventRequest, {
+							ignoreSearch: true,
+						}).then(() => {
+							return cache.put(eventRequest, responseFetchToCache);
+						});
+					});
+					return responseFetch;
+				})
 			})
 		);
 	}

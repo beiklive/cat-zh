@@ -17,9 +17,9 @@
 
 		<script>
 			if (typeof navigator.serviceWorker !== 'undefined') {
-				navigator.serviceWorker.register('serviceWorker.js', {
-					scope: './',
-				});
+				if (window.location.pathname && window.location.pathname.indexOf('//') == -1) {
+					navigator.serviceWorker.register('serviceWorker.js');
+				}
 			}
 		</script>
 
@@ -765,10 +765,11 @@
 				<ul style = "list-style:none">
 				<li>由于Gitee官方通知，该网站可能随时被关闭。<br>原因是likexia，idlegame 网页占用了较多网络资源。请相互理解</li>
 				<li>故请做好做备份，在游戏右上角的选项中可以 导出/导入 游戏存档。</li>
-				<li>所以我暂时弄了2个备用站。（分流一下~）</li>
-				<li>Cheney的gitee备用：<a href="https://petercheney.gitee.io/kitten-game-cn/" title="备用网站" target="_blank"><strong>https://petercheney.gitee.io/kitten-game-cn/</strong></a></li>
-				<li>Cheney的备用游戏：<a href="https://lolitalibrary.com/maomao/" title="备用网站" target="_blank"><strong>https://lolitalibrary.com/maomao/</strong></a></li>
-				<li>Cheney的备用百科：<a href="https://lolitalibrary.com/wiki/" title="备用网站" target="_blank"><strong>https://lolitalibrary.com/wiki/</strong></a></li>
+				<li>所以我暂时弄了几个备用站。（分流一下~）</li>
+				<br>Cheney的Gitee备用：<a href="https://petercheney.gitee.io/kitten-game-cn/" title="备用网站" target="_blank" style="text-transform:lowercase;"><strong>https://petercheney.gitee.io/kitten-game-cn/</strong></a></li>
+				<br>Cheney的备用游戏(推荐~)：<a href="https://lolitalibrary.com/maomao/" title="备用网站" target="_blank" style="text-transform:lowercase;"><strong>https://lolitalibrary.com/maomao/</strong></a></li>
+				<br>Cheney的备用百科：<a href="https://lolitalibrary.com/wiki/" title="备用网站" target="_blank" style="text-transform:lowercase;">https://lolitalibrary.com/wiki/</a>
+				<br>Github的备用游戏：<a href="https://lolitalibrary.com/wiki/" title="备用网站" target="_blank" style="text-transform:lowercase;">https://cat-zh-mirror1.github.io/cat-zh/</a>
 				</ul>
 			</div>
 
@@ -890,7 +891,9 @@
 			};
 			var id = setInterval(paragonWebsite, 10000);
 			var gitee = setTimeout(() => {
-				game.ui.showDialog("importantGiteeDiv");
+				if (game && game.ui) {
+					game.ui.showDialog("importantGiteeDiv");
+				}
 			}, 5000);
 		</script>
 		<script type="text/javascript">
