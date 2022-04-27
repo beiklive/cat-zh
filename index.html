@@ -192,20 +192,21 @@
 				console.log("Loading...");
 
 				//------ preload theme id ---------
+				var loadedTheme = [];
 				var uiData = LCstorage["com.nuclearunicorn.kittengame.ui"];
 				var uiSettings = uiData && JSON.parse(uiData);
 				if (uiSettings) {
 					if (uiSettings.theme) {
 						$("body").addClass("scheme_" + uiSettings.theme);
-						uiSettings.loadedTheme = [uiSettings.theme];
+						loadedTheme.push(uiSettings.theme);
 						loadTheme(uiSettings.theme);
 					}
 				}
 
 				$("#schemeToggle").on('change', function () {
 					let theme = $('#schemeToggle').val();
-					if (uiSettings && uiSettings.loadedTheme && $.inArray(theme, uiSettings.loadedTheme) == -1) {
-						uiSettings.loadedTheme.push(theme);
+					if (loadedTheme.indexOf(theme) == -1) {
+						loadedTheme.push(theme);
 						loadTheme(theme);
 					}
 					gamePage.toggleScheme(theme);
