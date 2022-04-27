@@ -33,13 +33,8 @@ self.addEventListener('install', event => {
 		caches.open('cdn').then(cache => {
 			return cache.addAll(cdnCache);
 		}).then(() => {
-			// 缓存index的重定向
-			return caches.open(CACHE_NAME).then(cache => {
-				return cache.addAll(urlsToCache);
-			}).then(() => {
-				// 安装新的
-				return self.skipWaiting();
-			});
+			// 安装新的
+			return self.skipWaiting();
 		})
 	);
 });
@@ -57,17 +52,21 @@ self.addEventListener("activate", event => {
 			//);
 		//}).
 		caches.open(CACHE_NAME).then(function(cache) {
-			return cache.delete(locationUrl, {
+			return cache.delete(locationUrl + 'index.html', {
 				ignoreSearch: true,
+			}).then(() => {
+				return cache.delete(locationUrl, {
+					ignoreSearch: true,
+				});
 			});
 		}).then(() => {
-			/* 缓存index的重定向
-			//return caches.open(CACHE_NAME).then(cache => {
-			//	return cache.addAll(urlsToCache);
-			}).then(() => { */
+			// 缓存index的重定向
+			return caches.open(CACHE_NAME).then(cache => {
+				return cache.addAll(urlsToCache);
+			}).then(() => {
 				// 装新的sw
 				return self.clients.claim();
-			//});
+			});
 		})
 	);
 });
@@ -77,7 +76,7 @@ self.addEventListener('fetch', function(event) {
 	let requestURL = eventRequest.url;
 	let objectURL = new URL(requestURL);
 	// 过滤版本号文件
-	let serverJson = requestURL.indexOf('server.json');
+	let serverJson = requestURL.includes('server.json');
 	let buildJson = requestURL.includes('build.version.json');
 	// 过滤 已知其他跨域的
 	let skipWorker = CACHE_LIST.indexOf(objectURL.host);
@@ -85,7 +84,7 @@ self.addEventListener('fetch', function(event) {
 		// 无视url参数
 		event.respondWith(
 			caches.match(eventRequest, {
-				ignoreSearch: buildJson,
+				ignoreSearch: buildJson || serverJson,
 			}).then(function(response, reject) {
 				//没网直接返回
 				if (!navigator.onLine) {
@@ -94,8 +93,8 @@ self.addEventListener('fetch', function(event) {
 				let useCache = true;
 				if (response) {
 					if (objectURL.search) {
-						/*serverJson !== -1 || */
-						if (objectURL.search.indexOf('=0') !== -1 || buildJson) {
+						/*serverJson !== -1 , 版本号有网更新缓存*/
+						if (buildJson) {
 							useCache = false;
 						}
 					}
