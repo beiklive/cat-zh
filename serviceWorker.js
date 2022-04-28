@@ -60,13 +60,8 @@ self.addEventListener("activate", event => {
 				});
 			});
 		}).then(() => {
-			// 缓存index的重定向
-			return caches.open(CACHE_NAME).then(cache => {
-				return cache.addAll(urlsToCache);
-			}).then(() => {
-				// 装新的sw
-				return self.clients.claim();
-			});
+			// 装新的sw
+			return self.clients.claim();
 		})
 	);
 });
