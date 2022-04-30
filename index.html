@@ -16,8 +16,8 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 		<script>
-			if (typeof navigator.serviceWorker !== 'undefined') {
-				if (window.location.pathname && window.location.pathname.indexOf('//') == -1) {
+			if (window.location.pathname && window.location.pathname.indexOf('//') == -1) {
+				if (typeof navigator.serviceWorker !== 'undefined') {
 					navigator.serviceWorker.register('serviceWorker.js');
 				}
 			}
@@ -195,11 +195,12 @@
 				var loadedTheme = [];
 				var uiData = LCstorage["com.nuclearunicorn.kittengame.ui"];
 				var uiSettings = uiData && JSON.parse(uiData);
+				var cssVision = false;
 				if (uiSettings) {
 					if (uiSettings.theme) {
 						$("body").addClass("scheme_" + uiSettings.theme);
 						loadedTheme.push(uiSettings.theme);
-						loadTheme(uiSettings.theme);
+						cssVision = true;
 					}
 				}
 
@@ -221,6 +222,9 @@
 				def = _import("config", def);
 				def = _import("i18n", def);
 				def.then(function() {
+					if (cssVision) {
+						loadTheme(uiSettings.theme);
+					}
 					console.log("Loading locale system");
 					var langPromise = i18nLang.init(buildRevision + "2");
 					langPromise.done(function() {
@@ -411,7 +415,7 @@
 
 			<div id="loadingContainer">
 				<div class="content">
-					<span style="font-size:18px;"><img class="loader" width="16" height="16" src="res/ajax-loader.gif" alt="加载中">&nbsp;加载中...</span>
+					<span style="font-size:18px;"><img class="loader" width="16" height="16" src="res/ajax-loader.gif" alt="加载中">&nbsp;加载中...<br></span>
 					<br>
 					<progress id="loadingProgressBar" value="0" max="100"></progress>
 					<div id="loadingProgressInfo">Setting up game engine...</div>
